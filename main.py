@@ -1,5 +1,6 @@
 import urllib.request
 import html5lib
+from datetime import date
 import time
 from bs4 import BeautifulSoup
 from selenium import webdriver
@@ -56,14 +57,12 @@ def scrollpage():
 
 
 def getlistmovies(username, listname, pagecount):
-    page = 1
-    count = 1
-    print('Title,Year')
-    print(page)
-    print(pagecount)
-    while page < pagecount + 1:
+    filename = '{}_{}_{}.csv'.format(listname, username, date.today().strftime('%Y%m%d'))
+    file = open(filename, 'a')
+    file.write('Title,Year\n')
 
-        myurl = 'https://letterboxd.com/{}/list/{}/page/{}/'.format(username, listname, page)
+    for page in range(pagecount):
+        myurl = 'https://letterboxd.com/{}/list/{}/page/{}/'.format(username, listname, page+1)
         driver.get(myurl)
         scrollpage()
 
@@ -72,13 +71,12 @@ def getlistmovies(username, listname, pagecount):
 
         for script in scripttags:
             if script.has_attr('data-film-name'):
-                print(', '.join([script['data-film-name'], script['data-film-release-year']]))
-                count += 1
-        page += 1
+                if ',' in script['data-film-name']:
+                    script['data-film-name'] = '"' + script['data-film-name'] + '"'
+                file.write(str(', '.join([script['data-film-name'], script['data-film-release-year']]))+'\n')
 
     driver.quit()
     print("Export completed.")
-
 
 def main():
     while True:
